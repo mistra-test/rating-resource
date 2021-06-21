@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rating-resource-deployment
+  labels:
+    app: rating-resource
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rating-resource
+  template:
+    metadata:
+      labels:
+        app: rating-resource
+    spec:
+      containers:
+      - name: rating-resource
+        image: skullgnammer/rating-resource:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "100M"
+          limits:
+            cpu: "800m"
+            memory: "200M"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rating-resource-service
+spec:
+  selector:
+    app: rating-resource
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080

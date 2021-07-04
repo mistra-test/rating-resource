@@ -3,38 +3,43 @@ package com.example.ratingresource.service;
 import com.example.ratingresource.model.Rating;
 import com.example.ratingresource.repository.RatingRepository;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
+@Log4j2
 @Service
+@RequiredArgsConstructor
 public class RatingService {
 
-    @Autowired private RatingRepository ratingRepository;
+    private final RatingRepository ratingRepository;
 
-    @Autowired
-    public RatingService(RatingRepository ratingRepository) {
-        this.ratingRepository = ratingRepository;
-    }
-
-    public List<Rating> findByUserId(Long userId) {
+    public Flux<Rating> findByUserId(Long userId) {
         return ratingRepository.findByUserId(userId);
     }
 
-    public List<Rating> findByUserIds(List<Long> userIdList) {
-        return ratingRepository.findByUserIdIn(userIdList);
-    }
-
-    public List<Rating> findByMovieId(Long movieId) {
+    public Flux<Rating> findByMovieId(Long movieId) {
         return ratingRepository.findByMovieId(movieId);
     }
 
-    public Rating save(Rating rating) {
-        ratingRepository.findByMovieId(rating.getMovieId()).stream()
+    public Mono<Rating> save(Rating rating) {
+        return ratingRepository
+                .findByMovieId(rating.getMovieId())
                 .filter(r -> r.getUserId().equals(rating.getUserId()))
-                .findAny()
-                .ifPresent(r -> rating.setId(r.getId()));
-        return ratingRepository.save(rating);
+                .next()
+                .map(r -> this.updateRatingId(r, rating))
+                .defaultIfEmpty(rating)
+                .flatMap(ratingRepository::save);
+    }
+
+    private Rating updateRatingId(Rating promised, Rating actual) {
+        log.info(promised);
+        log.info(actual);
+        actual.setId(promised.getId());
+        return actual;
     }
 }

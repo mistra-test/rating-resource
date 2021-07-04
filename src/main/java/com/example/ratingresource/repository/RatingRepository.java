@@ -2,14 +2,12 @@ package com.example.ratingresource.repository;
 
 import com.example.ratingresource.model.Rating;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.reactive.ReactiveSortingRepository;
 
-import java.util.List;
+import reactor.core.publisher.Flux;
 
-public interface RatingRepository extends JpaRepository<Rating, Long> {
-    List<Rating> findByUserId(Long userId);
+public interface RatingRepository extends ReactiveSortingRepository<Rating, Long> {
+    Flux<Rating> findByUserId(Long userId);
 
-    List<Rating> findByUserIdIn(List<Long> userIdList);
-
-    List<Rating> findByMovieId(Long movieId);
+    Flux<Rating> findByMovieId(Long movieId);
 }
